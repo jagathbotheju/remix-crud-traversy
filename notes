@@ -1,0 +1,39 @@
+# install prisma
+
+> npm i prisma @prisma/client
+
+# init with sqlite
+
+> npx prisma init --datasource-provider sqlite
+
+# create Post schema at prisma/schema.prisma
+
+model Post {
+id String @id @default(uuid())
+title String
+body String
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+
+# pust schema to db
+
+> npx prisma db push
+
+# install sqlite vscode extension
+
+press f1, type sqlite, open db, select prisma dev.db
+
+# create db seeder to populate db
+
+in prisma folder create file seed.js
+
+# add dev.db to gitignore
+
+# seed the db
+
+> node prisma/seed
+
+# prisma studio (no need sqlite extension)
+
+> npx prisma studio
