@@ -3,12 +3,6 @@ import { Link } from "@remix-run/react";
 export default function Index() {
   return (
     <div>
-      <div className="bg-slate-400 flex justify-between px-10 py-4">
-        <h1 className="text-3xl font-semibold">REMIX</h1>
-        <Link to="/posts" className="text-2xl font-semibold">
-          POSTS
-        </Link>
-      </div>
       <div className="container mx-auto mt-5">
         <h1 className="text-3xl text-gray-500 my-5">Welcome to Remix</h1>
         <p>

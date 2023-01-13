@@ -1,33 +1,40 @@
 import { redirect } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { db } from "~/utils/db.server";
+import { getUser } from "~/utils/sessions.server";
 
-export const loader = async ({ params }) => {
+export const loader = async ({ request, params }) => {
+  const user = await getUser(request);
   const post = await db.post.findUnique({
     where: { id: params.postid },
   });
 
   if (!post) throw new Error("Post Not Found...");
-  const data = { post };
+  const data = { post, user };
   return data;
 };
 
 export const action = async ({ request, params }) => {
   const form = await request.formData();
   if (form.get("_method") === "delete") {
+    const user = await getUser(request);
+
     const post = await db.post.findUnique({
       where: { id: params.postid },
     });
 
     if (!post) throw new Error("Post Not Found!");
-    await db.post.delete({ where: { id: params.postid } });
+    if (user && post.userId === user.id) {
+      await db.post.delete({ where: { id: params.postid } });
+    }
+
     return redirect("/posts");
   }
 };
 
 //client side
 const Post = () => {
-  const { post } = useLoaderData();
+  const { post, user } = useLoaderData();
 
   return (
     <>
@@ -45,12 +52,14 @@ const Post = () => {
         <div className=" bg-blue-300 p-10  flex flex-col rounded-xl">
           <h1 className="text-2xl font-semibold">{post.title}</h1>
           <p className="mt-5 text-gray-500">{post.body}</p>
-          <form method="post">
-            <input type="hidden" name="_method" value="delete" />
-            <button className="mt-5 py-3 px-4 rounded-lg uppercase bg-pink-500 text-white">
-              Delete
-            </button>
-          </form>
+          {user.id === post.userId && (
+            <form method="post">
+              <input type="hidden" name="_method" value="delete" />
+              <button className="mt-5 py-3 px-4 rounded-lg uppercase bg-pink-500 text-white">
+                Delete
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </>
