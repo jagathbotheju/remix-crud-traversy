@@ -5,8 +5,13 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import Navbar from "./components/Navbar";
 import styles from "./styles/app.css";
+import { getUser } from "./utils/sessions.server";
+//import * as dotenv from "dotenv";
+//dotenv.config();
 
 export function links() {
   return [{ rel: "stylesheet", href: styles }];
@@ -20,7 +25,16 @@ export const meta = () => ({
   keywords: "remix,react,javascript",
 });
 
+export const loader = async ({ request }) => {
+  const user = await getUser(request);
+  console.log(`user is root : ${JSON.stringify(user)}`);
+  const data = { user };
+  return data;
+};
+
 export default function App() {
+  const { user } = useLoaderData();
+
   return (
     <html lang="en">
       <head>
@@ -28,6 +42,7 @@ export default function App() {
         <Links />
       </head>
       <body>
+        <Navbar user={user} />
         <Outlet />
         <ScrollRestoration />
         <Scripts />

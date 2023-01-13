@@ -6,8 +6,15 @@ export const loader = async () => {
   const data = {
     posts: await db.post.findMany({
       take: 20,
-      select: { id: true, title: true, createdAt: true },
+      // select: {
+      //   id: true,
+      //   title: true,
+      //   createdAt: true,
+      // },
       orderBy: { createdAt: "desc" },
+      include: {
+        user: true,
+      },
     }),
   };
   return data;
@@ -32,7 +39,14 @@ const PostItems = () => {
           <li key={post.id} className="p-4 bg-blue-300 px-4 my-5 rounded-xl">
             <Link to={post.id}>
               <h3 className="text-xl font-semibold">{post.title}</h3>
-              {new Date(post.createdAt).toLocaleString()}
+              <div className="flex justify-between">
+                <p className="font-semibold normal-case">
+                  {post.user.username}
+                </p>
+                <p className="text-xs text-gray-600">
+                  {new Date(post.createdAt).toLocaleString()}
+                </p>
+              </div>
             </Link>
           </li>
         ))}

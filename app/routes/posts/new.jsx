@@ -1,11 +1,43 @@
-import { Link, Form } from "@remix-run/react";
-import { redirect } from "@remix-run/node";
+import { Link, Form, useActionData } from "@remix-run/react";
+import { redirect, json } from "@remix-run/node";
 import { db } from "~/utils/db.server";
+import { getUser } from "~/utils/sessions.server";
+
+const validateTitle = (title) => {
+  if (typeof title != "string" || title.length < 3) {
+    return "Title should be at least 3 Characters log";
+  }
+};
+
+const validateBody = (body) => {
+  if (typeof body != "string" || body.length < 10) {
+    return "Body should be at least 10 Characters log";
+  }
+};
+
+const badRequest = (data) => {
+  return json(data, { status: 400 });
+};
 
 export const action = async ({ request }) => {
   const formData = await request.formData();
   const postData = Object.fromEntries(formData);
-  const post = await db.post.create({ data: postData });
+  const user = await getUser(request);
+
+  const fieldErrors = {
+    title: validateTitle(postData.title),
+    body: validateBody(postData.body),
+  };
+  if (Object.values(fieldErrors).some(Boolean)) {
+    return badRequest({ fieldErrors, postData });
+  }
+
+  const post = await db.post.create({
+    data: {
+      ...postData,
+      userId: user.id,
+    },
+  });
 
   return redirect(`/posts/${post.id}`);
 };
@@ -20,6 +52,8 @@ export const ErrorBoundary = ({ error }) => {
 };
 
 const New = () => {
+  const actionData = useActionData();
+
   return (
     <div className="container mx-auto mt-10 w-8/12">
       <div className="flex flex-col">
@@ -38,12 +72,16 @@ const New = () => {
           <label className="block mb-2 text-md" htmlFor="title">
             Title
           </label>
+
           <input
             className="border border-gray-300 bg-gray-50 rounded-sm text-lg w-full"
             type="text"
             name="title"
             id="title"
           />
+          <p className="text-xs text-red-500 mt-1">
+            {actionData?.fieldErrors?.title && actionData?.fieldErrors?.title}
+          </p>
         </div>
 
         {/* boody */}
@@ -57,6 +95,9 @@ const New = () => {
             name="body"
             id="body"
           />
+          <p className="text-xs text-red-500 mt-1">
+            {actionData?.fieldErrors?.body && actionData?.fieldErrors?.body}
+          </p>
         </div>
 
         <button className="py-3 px-4 text-lg bg-gray-800 text-white rounded-md">
